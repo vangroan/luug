@@ -59,9 +59,12 @@ impl<'a> VM<'a> {
             OP_MUL => self.op_mul(),
             OP_DIV => self.op_div(),
             OP_PRINT => self.op_print(),
+
             OP_DUP => self.op_dup(),
             OP_DROP => self.op_drop(),
             OP_SWAP => self.op_swap(),
+            OP_OVER => self.op_over(),
+
             _ => {}
         }
     }
@@ -119,6 +122,15 @@ impl<'a> VM<'a> {
     fn op_swap(&mut self) {
         let b = self.stack.pop().unwrap();
         let a = self.stack.pop().unwrap();
+        self.stack.push(b);
+        self.stack.push(a);
+    }
+
+    /// ( a b -> a b a )
+    fn op_over(&mut self) {
+        let b = self.stack.pop().unwrap();
+        let a = self.stack.pop().unwrap();
+        self.stack.push(a);
         self.stack.push(b);
         self.stack.push(a);
     }
@@ -260,6 +272,24 @@ mod tests {
             let stack = vm.get_stack();
             assert_eq!(stack[0], 11);
             assert_eq!(stack[1], 7);
+        }
+    }  
+
+    #[test]
+    fn test_op_over() {
+        let program : Vec<u16> = vec![
+            OP_PUSH, 7,
+            OP_PUSH, 11,
+            OP_OVER,
+        ];
+
+        {
+            let mut vm = VM::new();
+            vm.interpret(&program);
+            let stack = vm.get_stack();
+            assert_eq!(stack[0], 7);
+            assert_eq!(stack[1], 11);
+            assert_eq!(stack[2], 7);
         }
     }
 }
