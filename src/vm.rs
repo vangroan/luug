@@ -198,4 +198,20 @@ mod tests {
             assert_eq!(stack[0], 5);
         }
     }
+
+    #[test]
+    fn test_op_dup() {
+        let program : Vec<u16> = vec![
+            OP_PUSH, 6,
+            OP_DUP,
+        ];
+
+        {
+            let mut vm = VM::new();
+            vm.interpret(&program);
+            let stack = vm.get_stack();
+            assert_eq!(stack[1], 6);
+            assert_eq!(stack.len(), 2);
+        }
+    }
 }
