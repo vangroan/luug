@@ -66,8 +66,14 @@ impl<'a> VM<'a> {
             OP_OVER => self.op_over(),
             OP_ROT => self.op_rot(),
 
-            OP_BRANCH => self.op_branch(),
-            OP_NBRANCH => self.op_nbranch(),
+            OP_BRANCH => {
+                let val = self.take(program);
+                self.op_branch(val);
+            },
+            OP_NBRANCH => {
+                let val = self.take(program);
+                self.op_nbranch(val)
+            },
 
             _ => {}
         }
@@ -149,12 +155,17 @@ impl<'a> VM<'a> {
         self.stack.push(a);
     }
 
-    fn op_branch(&mut self) {
-
+    // Always jump to address
+    fn op_branch(&mut self, offset: u16) {
+        self.pc += offset as usize;
     }
 
-    fn op_nbranch(&mut self) {
-
+    // Pop a value, and jump if it's false
+    fn op_nbranch(&mut self, offset: u16) {
+        let v = self.stack.pop().unwrap();
+        if v == 0 {
+            self.pc += offset as usize;
+        }
     }
 }
 
@@ -331,6 +342,24 @@ mod tests {
             assert_eq!(stack[0], 9);
             assert_eq!(stack[1], 11);
             assert_eq!(stack[2], 7);
+        }
+    }
+
+    #[test]
+    fn test_op_branch() {
+        let program : Vec<u16> = vec![
+            OP_PUSH, 7,
+            OP_BRANCH, 2,
+            OP_PUSH, 9,
+            OP_PUSH, 11,
+        ];
+
+        {
+            let mut vm = VM::new();
+            vm.interpret(&program);
+            let stack = vm.get_stack();
+            println!("{:?}", stack);
+            assert_eq!(stack[1], 11);
         }
     }
 }
