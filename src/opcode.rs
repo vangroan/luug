@@ -11,4 +11,7 @@ pub const OP_SWAP : u16 = 0x0102;
 pub const OP_OVER : u16 = 0x0103;
 pub const OP_ROT : u16 = 0x0104;
 
+pub const OP_BRANCH : u16 = 0x0200;
+pub const OP_NBRANCH : u16 = 0x0201;
+
 pub const OP_PRINT : u16 = 0x1000;

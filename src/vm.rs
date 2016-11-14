@@ -66,6 +66,9 @@ impl<'a> VM<'a> {
             OP_OVER => self.op_over(),
             OP_ROT => self.op_rot(),
 
+            OP_BRANCH => self.op_branch(),
+            OP_NBRANCH => self.op_nbranch(),
+
             _ => {}
         }
     }
@@ -144,6 +147,14 @@ impl<'a> VM<'a> {
         self.stack.push(b);
         self.stack.push(c);
         self.stack.push(a);
+    }
+
+    fn op_branch(&mut self) {
+
+    }
+
+    fn op_nbranch(&mut self) {
+
     }
 }
 
