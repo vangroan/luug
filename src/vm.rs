@@ -1,0 +1,194 @@
+
+use lexer;
+use opcode::*;
+
+/* =============== *
+ * Virtual Machine *
+ * =============== */
+
+
+#[derive(Debug)]
+pub struct VM <'a> {
+    pc : usize,
+    stack : Vec<u16>,
+    program : Option<&'a Vec<u16>>
+}
+
+
+impl<'a> VM<'a> {
+    pub fn new() -> VM<'a> {
+        VM {
+            pc : 0,
+            stack : vec![0; 0],
+            program : None
+        }
+    }
+
+    pub fn interpret(&mut self, program : &'a Vec<u16>) {
+        self.program = Some(&program);
+        self.pc = 0;
+
+        while self.pc < program.len() {
+            let op = self.take(program);
+            self.dispatch(op, program);            
+        }
+    }
+
+    fn take(&mut self, program : &Vec<u16>) -> u16 {
+        let op = program[self.pc];
+        self.pc += 1;
+        op
+    }
+
+    fn get_stack(&self) -> &Vec<u16> {
+        &self.stack
+    }
+
+    /* -------- *
+     * Op Codes *
+     * -------- */
+
+    fn dispatch(&mut self, op : u16,  program : &Vec<u16>) {
+        match op {
+            OP_PUSH => {
+                let val = self.take(program);
+                self.op_push(val);
+            },
+            OP_ADD => self.op_add(),
+            OP_SUB => self.op_sub(),
+            OP_MUL => self.op_mul(),
+            OP_DIV => self.op_div(),
+            OP_PRINT => self.op_print(),
+            _ => {}
+        }
+    }
+
+    fn op_push(&mut self, val : u16) {
+        println!("Pushing 0x{:04X}", val);
+        self.stack.push(val)
+    }
+
+    fn op_add(&mut self) {
+        let rhs = self.stack.pop().unwrap();
+        let lhs = self.stack.pop().unwrap();
+        println!("Adding 0x{:04X} and 0x{:04X}", lhs, rhs);
+        self.stack.push(lhs + rhs)
+    }
+
+    fn op_sub(&mut self) {
+        let rhs = self.stack.pop().unwrap();
+        let lhs = self.stack.pop().unwrap();
+        println!("Subtracting 0x{:04X} and 0x{:04X}", lhs, rhs);
+        self.stack.push(lhs - rhs)
+    }
+
+    fn op_mul(&mut self) {
+        let rhs = self.stack.pop().unwrap();
+        let lhs = self.stack.pop().unwrap();
+        println!("Multiplying 0x{:04X} and 0x{:04X}", lhs, rhs);
+        self.stack.push(lhs * rhs)
+    }
+
+    fn op_div(&mut self) {
+        let rhs = self.stack.pop().unwrap();
+        let lhs = self.stack.pop().unwrap();
+        println!("Dividing 0x{:04X} and 0x{:04X}", lhs, rhs);
+        self.stack.push(lhs / rhs);
+    }
+
+    fn op_print(&mut self) {
+        println!("Result: {:?}", self.stack.pop().unwrap());
+    }
+}
+
+
+/* ===== *
+ * Tests *
+ * ===== */
+
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use opcode::*;
+
+    #[test]
+    fn test_op_push() {
+        let program : Vec<u16> = vec![
+            OP_PUSH, 123,
+            OP_PUSH, 534
+        ];
+
+        {
+            let mut vm = VM::new();
+            vm.interpret(&program);
+            let stack = vm.get_stack();
+            assert_eq!(stack[0], 123);
+            assert_eq!(stack[1], 534);
+        }
+    }
+
+    #[test]
+    fn test_op_add() {
+        let program : Vec<u16> = vec![
+            OP_PUSH, 7,
+            OP_PUSH, 11,
+            OP_ADD,
+        ];
+
+        {
+            let mut vm = VM::new();
+            vm.interpret(&program);
+            let stack = vm.get_stack();
+            assert_eq!(stack[0], 18);
+        }
+    }
+
+    #[test]
+    fn test_op_sub() {
+        let program : Vec<u16> = vec![
+            OP_PUSH, 17,
+            OP_PUSH, 11,
+            OP_SUB,
+        ];
+
+        {
+            let mut vm = VM::new();
+            vm.interpret(&program);
+            let stack = vm.get_stack();
+            assert_eq!(stack[0], 6);
+        }
+    }
+
+    #[test]
+    fn test_op_mul() {
+        let program : Vec<u16> = vec![
+            OP_PUSH, 5,
+            OP_PUSH, 3,
+            OP_MUL,
+        ];
+
+        {
+            let mut vm = VM::new();
+            vm.interpret(&program);
+            let stack = vm.get_stack();
+            assert_eq!(stack[0], 15);
+        }
+    }
+
+    #[test]
+    fn test_op_div() {
+        let program : Vec<u16> = vec![
+            OP_PUSH, 15,
+            OP_PUSH, 3,
+            OP_DIV,
+        ];
+
+        {
+            let mut vm = VM::new();
+            vm.interpret(&program);
+            let stack = vm.get_stack();
+            assert_eq!(stack[0], 5);
+        }
+    }
+}
