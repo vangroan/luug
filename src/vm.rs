@@ -59,6 +59,7 @@ impl<'a> VM<'a> {
             OP_MUL => self.op_mul(),
             OP_DIV => self.op_div(),
             OP_PRINT => self.op_print(),
+            OP_DUP => self.op_dup(),
             _ => {}
         }
     }
@@ -98,6 +99,12 @@ impl<'a> VM<'a> {
 
     fn op_print(&mut self) {
         println!("Result: {:?}", self.stack.pop().unwrap());
+    }
+
+    fn op_dup(&mut self) {
+        let v = self.stack.pop().unwrap();
+        self.stack.push(v);
+        self.stack.push(v);
     }
 }
 
