@@ -2,6 +2,7 @@
 use lexer;
 use opcode::*;
 
+
 /* =============== *
  * Virtual Machine *
  * =============== */
@@ -10,8 +11,8 @@ use opcode::*;
 #[derive(Debug)]
 pub struct VM <'a> {
     pc : usize,
-    stack : Vec<u16>,
-    program : Option<&'a Vec<u16>>
+    stack : Vec<Word>,
+    program : Option<&'a Vec<Word>>
 }
 
 
@@ -24,23 +25,30 @@ impl<'a> VM<'a> {
         }
     }
 
-    pub fn interpret(&mut self, program : &'a Vec<u16>) {
-        self.program = Some(&program);
-        self.pc = 0;
+    pub fn interpret(&mut self, program : &'a Vec<Word>) {
+        self.interpret_n(program, 0, program.len());
+    }
 
-        while self.pc < program.len() {
+    /// Interpret the program starting at a given position, for the given
+    /// length.
+    pub fn interpret_n(&mut self, program : &'a Vec<Word>,
+                        start : usize, length : usize) {
+        self.program = Some(&program);
+        self.pc = start;
+
+        while self.pc < length {
             let op = self.take(program);
             self.dispatch(op, program);            
         }
     }
 
-    fn take(&mut self, program : &Vec<u16>) -> u16 {
+    fn take(&mut self, program : &Vec<Word>) -> Word {
         let op = program[self.pc];
         self.pc += 1;
         op
     }
 
-    fn get_stack(&self) -> &Vec<u16> {
+    fn get_stack(&self) -> &Vec<Word> {
         &self.stack
     }
 
@@ -48,7 +56,7 @@ impl<'a> VM<'a> {
      * Op Codes *
      * -------- */
 
-    fn dispatch(&mut self, op : u16,  program : &Vec<u16>) {
+    fn dispatch(&mut self, op : Word,  program : &Vec<Word>) {
         match op {
             OP_PUSH => {
                 let val = self.take(program);
@@ -79,36 +87,31 @@ impl<'a> VM<'a> {
         }
     }
 
-    fn op_push(&mut self, val : u16) {
-        println!("Pushing 0x{:04X}", val);
+    fn op_push(&mut self, val : Word) {
         self.stack.push(val)
     }
 
     fn op_add(&mut self) {
         let rhs = self.stack.pop().unwrap();
         let lhs = self.stack.pop().unwrap();
-        println!("Adding 0x{:04X} and 0x{:04X}", lhs, rhs);
         self.stack.push(lhs + rhs)
     }
 
     fn op_sub(&mut self) {
         let rhs = self.stack.pop().unwrap();
         let lhs = self.stack.pop().unwrap();
-        println!("Subtracting 0x{:04X} and 0x{:04X}", lhs, rhs);
         self.stack.push(lhs - rhs)
     }
 
     fn op_mul(&mut self) {
         let rhs = self.stack.pop().unwrap();
         let lhs = self.stack.pop().unwrap();
-        println!("Multiplying 0x{:04X} and 0x{:04X}", lhs, rhs);
         self.stack.push(lhs * rhs)
     }
 
     fn op_div(&mut self) {
         let rhs = self.stack.pop().unwrap();
         let lhs = self.stack.pop().unwrap();
-        println!("Dividing 0x{:04X} and 0x{:04X}", lhs, rhs);
         self.stack.push(lhs / rhs);
     }
 
@@ -156,15 +159,24 @@ impl<'a> VM<'a> {
     }
 
     // Always jump to address
-    fn op_branch(&mut self, offset: u16) {
-        self.pc += offset as usize;
+    fn op_branch(&mut self, offset: Word) {
+        self.pc = (if offset < 0 {
+                    self.pc - (-offset) as usize
+                } else {
+                    self.pc + offset as usize 
+                });
     }
 
     // Pop a value, and jump if it's false
-    fn op_nbranch(&mut self, offset: u16) {
+    fn op_nbranch(&mut self, offset: Word) {
         let v = self.stack.pop().unwrap();
+        println!("########Branching pc : {:?}", self.pc);
         if v == 0 {
-            self.pc += offset as usize;
+            self.pc = (if offset < 0 {
+                    self.pc - (-offset) as usize
+                } else {
+                    self.pc + offset as usize 
+                });
         }
     }
 }
@@ -182,7 +194,7 @@ mod tests {
 
     #[test]
     fn test_op_push() {
-        let program : Vec<u16> = vec![
+        let program : Vec<Word> = vec![
             OP_PUSH, 123,
             OP_PUSH, 534
         ];
@@ -198,7 +210,7 @@ mod tests {
 
     #[test]
     fn test_op_add() {
-        let program : Vec<u16> = vec![
+        let program : Vec<Word> = vec![
             OP_PUSH, 7,
             OP_PUSH, 11,
             OP_ADD,
@@ -214,7 +226,7 @@ mod tests {
 
     #[test]
     fn test_op_sub() {
-        let program : Vec<u16> = vec![
+        let program : Vec<Word> = vec![
             OP_PUSH, 17,
             OP_PUSH, 11,
             OP_SUB,
@@ -230,7 +242,7 @@ mod tests {
 
     #[test]
     fn test_op_mul() {
-        let program : Vec<u16> = vec![
+        let program : Vec<Word> = vec![
             OP_PUSH, 5,
             OP_PUSH, 3,
             OP_MUL,
@@ -246,7 +258,7 @@ mod tests {
 
     #[test]
     fn test_op_div() {
-        let program : Vec<u16> = vec![
+        let program : Vec<Word> = vec![
             OP_PUSH, 15,
             OP_PUSH, 3,
             OP_DIV,
@@ -262,7 +274,7 @@ mod tests {
 
     #[test]
     fn test_op_dup() {
-        let program : Vec<u16> = vec![
+        let program : Vec<Word> = vec![
             OP_PUSH, 6,
             OP_DUP,
         ];
@@ -278,7 +290,7 @@ mod tests {
 
     #[test]
     fn test_op_drop() {
-        let program : Vec<u16> = vec![
+        let program : Vec<Word> = vec![
             OP_PUSH, 6,
             OP_DROP,
         ];
@@ -293,7 +305,7 @@ mod tests {
 
     #[test]
     fn test_op_swap() {
-        let program : Vec<u16> = vec![
+        let program : Vec<Word> = vec![
             OP_PUSH, 7,
             OP_PUSH, 11,
             OP_SWAP,
@@ -310,7 +322,7 @@ mod tests {
 
     #[test]
     fn test_op_over() {
-        let program : Vec<u16> = vec![
+        let program : Vec<Word> = vec![
             OP_PUSH, 7,
             OP_PUSH, 11,
             OP_OVER,
@@ -328,7 +340,7 @@ mod tests {
 
     #[test]
     fn test_op_rot() {
-        let program : Vec<u16> = vec![
+        let program : Vec<Word> = vec![
             OP_PUSH, 7,
             OP_PUSH, 9,
             OP_PUSH, 11,
@@ -347,7 +359,7 @@ mod tests {
 
     #[test]
     fn test_op_branch() {
-        let program : Vec<u16> = vec![
+        let program : Vec<Word> = vec![
             OP_PUSH, 7,
             OP_BRANCH, 2,
             OP_PUSH, 9,
@@ -358,8 +370,24 @@ mod tests {
             let mut vm = VM::new();
             vm.interpret(&program);
             let stack = vm.get_stack();
-            println!("{:?}", stack);
             assert_eq!(stack[1], 11);
+        }
+    }
+
+    // TODO: Test without infinite loop
+    #[test]
+    fn test_branch_back() {
+        let program : Vec<Word> = vec![
+            OP_PUSH, 7,
+            OP_PUSH, 9,
+            OP_PUSH, 0,
+            // OP_NBRANCH, -2,
+        ];
+
+        {
+            let mut vm = VM::new();
+            vm.interpret(&program);
+            let stack = vm.get_stack();
         }
     }
 }
