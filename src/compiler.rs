@@ -22,7 +22,9 @@ impl Compiler {
         Compiler {}
     }
 
-    pub fn compile(&mut self) -> Vec<u16> {
+    pub fn compile(&mut self, source: &str) -> Vec<u16> {
+        let mut lexer = Lexer::new(source);
+        
         Vec::<u16>::new()
     }
 
