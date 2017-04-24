@@ -19,7 +19,5 @@ pub fn run(vm : &mut vm::VM) {
 
         let mut compiler = compiler::Compiler::new();
         compiler.compile(&buffer[..]);
-
-        // running = false;
     }
 } 
