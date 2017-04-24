@@ -49,6 +49,7 @@ pub enum Operator {
 
 #[derive(PartialEq, Debug)]
 pub enum Token {
+    Unknown,
     EOF,
     Number(i32),
     Operator(Operator)
@@ -80,21 +81,28 @@ pub fn get_precedence(operator: Operator) -> i32 {
 
 
 pub struct Lexer<'a> {
-    chars : Chars<'a>
+    chars : Chars<'a>,
+    done : bool
 }
 
 
 impl<'a> Lexer<'a> {
     pub fn new(source : &'a str) -> Lexer<'a> {
         Lexer {
-            chars : source.chars()
+            chars : source.chars(),
+            done : false
         }
+    }
+
+    pub fn has_next(&self) -> bool {
+        !self.done
     }
 
     pub fn next_token(&mut self) -> Token {
         let maybe_c = self.take();
 
         if maybe_c.is_none() {
+            self.done = true;
             return Token::EOF
         }
 
@@ -115,7 +123,7 @@ impl<'a> Lexer<'a> {
             return self.operator(c1)
         }
 
-        Token::EOF
+        Token::Unknown
     }
 
     fn is_whitespace(c : char) -> bool {

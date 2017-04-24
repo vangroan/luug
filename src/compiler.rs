@@ -4,7 +4,7 @@ use lexer::*;
 use opcode::*;
 
 
-struct Instruction(u16, u16);
+struct Instruction(Word, Word);
 
 
 /* ======== *
@@ -24,13 +24,20 @@ impl Compiler {
 
     pub fn compile(&mut self, source: &str) -> Vec<u16> {
         let mut lexer = Lexer::new(source);
-        
-        Vec::<u16>::new()
-    }
+        let mut bytecode = Vec::<u16>::new();
 
-    fn next_instruction() -> Instruction {
-        
-        Instruction(0, 0)
+        while lexer.has_next() {
+            let token = lexer.next_token();
+            println!("{:?}", token);
+            match token {
+                Token::Number(value) => {},
+                Token::Operator(op) => {},
+                Token::Unknown => {},
+                Token::EOF => {}
+            }
+        }
+
+        bytecode
     }
 }
 
