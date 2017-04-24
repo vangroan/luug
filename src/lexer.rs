@@ -31,20 +31,46 @@ pub fn contains<T>(el : &T, arr : &[T]) -> bool  where T : PartialEq<T> {
  * Tokens *
  * ====== */
 
+#[derive(PartialEq, Debug)]
+pub enum Associativity {
+    Left,
+    Right
+}
+
 
 #[derive(PartialEq, Debug)]
 pub enum Operator {
-    Add = 0,
-    Subtract = 1,
-    Multiply = 2,
-    Divide = 3
+    Multiply,
+    Divide,
+    Add,
+    Subtract
 }
+
 
 #[derive(PartialEq, Debug)]
 pub enum Token {
     EOF,
     Number(i32),
     Operator(Operator)
+}
+
+
+pub fn get_associativity(operator: Operator) -> Associativity {
+    match operator {
+        Operator::Multiply => Associativity::Left,
+        Operator::Divide => Associativity::Left,
+        Operator::Add => Associativity::Left,
+        Operator::Subtract => Associativity::Left
+    }
+}
+
+pub fn get_precedence(operator: Operator) -> i32 {
+    match operator {
+        Operator::Multiply => 10,
+        Operator::Divide => 11,
+        Operator::Add => 12,
+        Operator::Subtract => 13
+    }
 }
 
 
