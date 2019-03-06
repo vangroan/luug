@@ -3,6 +3,7 @@ extern crate clap;
 mod compiler;
 mod lexer;
 mod opcode;
+mod parser;
 mod repl;
 mod vm;
 

@@ -35,7 +35,7 @@ pub enum Associativity {
     Right,
 }
 
-#[derive(PartialEq, Debug)]
+#[derive(PartialEq, Debug, Clone)]
 pub enum Operator {
     Multiply,
     Divide,
@@ -43,7 +43,7 @@ pub enum Operator {
     Subtract,
 }
 
-#[derive(PartialEq, Debug)]
+#[derive(PartialEq, Debug, Clone)]
 pub enum Token {
     Unknown,
     EOF,
