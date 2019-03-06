@@ -1,21 +1,13 @@
-
-
 use lexer::*;
 use opcode::*;
 
-
 struct Instruction(Word, Word);
-
 
 /* ======== *
  * Compiler *
  * ======== */
 
-
-pub struct Compiler {
-
-}
-
+pub struct Compiler {}
 
 impl Compiler {
     pub fn new() -> Compiler {
@@ -30,9 +22,9 @@ impl Compiler {
             let token = lexer.next_token();
             println!("{:?}", token);
             match token {
-                Token::Number(value) => {},
-                Token::Operator(op) => {},
-                Token::Unknown => {},
+                Token::Number(value) => {}
+                Token::Operator(op) => {}
+                Token::Unknown => {}
                 Token::EOF => {}
             }
         }
@@ -41,13 +33,10 @@ impl Compiler {
     }
 }
 
-
 #[cfg(test)]
 mod tests {
     use super::*;
 
     #[test]
-    fn test() {
-        
-    }
+    fn test() {}
 }
