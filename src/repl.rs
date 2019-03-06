@@ -1,23 +1,25 @@
 
-use std::io::{self, Read};
+use std::io::{self, prelude::*};
 use vm;
 use compiler;
 
-pub fn run(vm : &mut vm::VM) {
+pub fn run(_vm : &mut vm::VM) {
     let mut running = true;
 
     println!("Type 'quit' to close loop...");
-
+    
     while running {
+        print!("> ");
+        io::stdout().flush().ok().expect("Could not flush stdout");
         let mut buffer = String::new();
-        io::stdin().read_line(&mut buffer);
+        io::stdin().read_line(&mut buffer).ok().expect("Could not read input");
         println!("{:?}", buffer);
 
         if buffer.contains("quit") {
-            break;
+            running = false;
+        } else {
+            let mut compiler = compiler::Compiler::new();
+            compiler.compile(&buffer[..]);
         }
-
-        let mut compiler = compiler::Compiler::new();
-        compiler.compile(&buffer[..]);
     }
 } 
