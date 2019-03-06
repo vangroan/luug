@@ -8,11 +8,11 @@ mod compiler;
 mod vm;
 
 use vm::*;
-use clap::{Arg, App, SubCommand};
+use clap::App;
 
 
 fn main() {
-    let matches = App::new("luug")
+    let _matches = App::new("luug")
                     .version("0.0.1")
                     .author("Willem Victor <wimpievictor@gmail.com>")
                     .get_matches();
